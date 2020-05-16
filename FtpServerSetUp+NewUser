@@ -1,0 +1,129 @@
+How to setup FTP server / users on Windows 2012 R2? Most Viewed Article
+Created October 29, 2015 Author vpsie Category How To's
+Introduction
+This tutorial should assist with creating FTP server on Windows 2012 R2 – Depend on your version – Your setting might be slightly different.
+
+Even there are too many free third-party tools like Filezilla that provide a client access to FTP serve..
+
+Here you have the steps I followed to set up my FTP server in Windows 2012 R2.
+The steps below assume you are using IIS 8.5 that comes by default with Windows 2012 R2
+
+Prerequisites
+A Windows 2012 R2 server.
+An administrative account.
+1- Enable Web Server (IIS) role and FTP Server role service.
+Log in to the server by using an administrative account
+Open Server Manager
+Go to Manage > Add Roles and Features
+Click Next
+Select Role-based or feature-based installation
+Click Next
+Select Select a server from the server pool, and select your server
+Click Next.
+Scroll down and put a check mark in Web Server (IIS)
+An Add features window pops up. Put a check mark in the Include management tools (if applicable) option
+Click Add Features button
+Click Next
+Click Next
+Click Next
+Scroll down and put a check mark in: FTP server, FTP Service and FTP Extensibility.
+Click Next
+Click Install
+When installation is finished, click Close
+2- Create FTP users
+You need to create users in Windows in order to be able to use FTP services.
+You can use either local or domain users.
+In this case, I will create some local users.
+The only thing that changes if you use domain users is, when you log in to FTP, you must use the domain/account format.
+
+In Server Manager go to Tools
+Click Computer Management
+Click Local Users and Groups
+Click Users
+In the center pane, right-click a blank area and then select New User…
+Enter the username information and click the Create button
+Create as many usernames you need here.
+Optionally, you can create a group that contains all the FTP users in the Groups folder and add the users you created above.
+
+3- Configuring FTP global IIS settings.
+You need to configure some global settings for your IIS server before creating your FTP site.
+It is very easy, follow the steps below:
+
+In Server Manager go to Tools
+Click Internet Information Services (IIS) manager.
+In the left pane, double-click the server icon (in the tree below the option Start Page)
+If a window pops up asking about Microsoft Web Platform, select Do not show this message, and click the No button
+In the center pane, double-click the FTP Authentication icon
+If you want to allow anonymous users,right-click Anonymous Authentication and set it to Enable.
+To allow access to the windows users you created in Part Two above, right-click Basic Authentication and set it to Enable.
+In the left pane, double-click the server icon.
+Double click the FTP Authorization Rules option
+Delete all rules in the center pane.
+After all rules have been deleted, right-click a blank area in the center pane and select the option Add Allow Rule…
+Click the option Specified users.
+In the text box type the usernames (separated by commas) you created in Part Two above.
+Check either the boxes Read or Write depending the access you want to grant to the user or group of users you are adding.
+Click the OK button
+Repeat steps 8 to 15 if you want to add more users with different Read / Write permissions.
+4- Creating FTP site.
+Open Windows Explorer
+Navigate to C:\inetpub\ftproot
+This is the default local folder where the FTP directory tree will be saved
+You can create your own folder in another directory or hard drive if you want.
+Create your own folder at this point if it is desired.
+Open Server Manager
+Go to Tools
+Click on Internet Information Services (IIS) Manager
+In the left pane, right-click the server icon (in the tree below the option Start Page)
+Click Add FTP Site
+In FTP site name type a friendly name for your site. (My FTP Site  for example)
+In Physical path browse to the folder you creates in steps 2 to 5
+Click Next
+In IP Address, click the drop down menu, and select the server’s IP address you want to assign to the site
+Port remains as 21 by default. You can change it if you want.
+Ensure the option Start FTP site automatically is checked
+Select the No SSL option if you are nor required to use certificates. Otherwise, select one of the other options.
+Click Next
+In the Authentication section, put a check mark in Anonymous If you want to allow anonymous users.
+Put a check mark also in Basic to allow access to users created in Part Two.
+In the Allow access to: drop down menu, select: Specified Users
+In the text box type the usernames of the users you created in Part Two.
+Check the box Read to grant read access to users.
+Check the box Write to grant write access to users.
+Click Finish
+5- IIS Firewall setup.
+In Server Manager go to Tools
+Click Internet Information Services (IIS) manager.
+In the left pane, double-click the server icon (in the tree below the option Start Page)
+In the center pane, double-click the FTP Firewall Support icon
+In the Data Channel Port Range box, make sure the value is 0-0 to use the default port range.
+Or, you can change it if you want by your own set of ports.
+Click Apply
+Close Internet Information Services (IIS) Manager
+6- Windows Firewall setup.
+By default, all exceptions needed for FTP are added to the Windows Firewall at the time you enable the FTP Server role.
+Anyway, for troubleshooting purposes, I will show the configuration that needs to be in place in order to allow FTP traffic in your server.
+
+Open Server Manager
+In the left pane, click Local Server
+In the right pane, click the hyperlink beside the Windows Firewall option. It should say Public:On  (or Off).
+The Windows firewall window opens. In the left pane click Advanced Settings
+The Windows Firewall with Advanced Security window opens. In the left pane click Inbound Rules.
+In the right pane, verify there’s a rule called FTP Server (FTP Traffic-In)
+Double click this rule.
+In the General tab, verify the option Enabled is checked.
+Go to the Protocols and Ports tab.
+Verify the Protocol type is TCP and the Local port value is 21.
+Go to the Advanced tab
+Make sure the profiles: Domain, Private and Public are checked.
+Click OK button
+Execute the same validation in steps 7-13 for the FTP Server Passive (FTP Passive Traffic-In) rule. Except that the local port value in this rule should be1024-65535
+Execute the same validation in steps 7-13 for the FTP Server Secure (FTP SSL Traffic-In) rule.Except that the local port value in this rule should be 990
+In the left pane, click Outbound Rules
+Execute the same validation in steps 7-13 for the FTP Server (FTP Traffic-Out) rule. Except that the local port value in this rule should be 20
+Execute the same validation in steps 7-13 for the FTP Server Secure (FTP SSL Traffic-Out) rule. Except that the local port value in this rule should be 989
+Close all windows.
+ 7- Testing
+The last part is to test your work.
+Make sure you can connect to the FTP service, first from the local machine and then form a remote computer.
+Try to log in, put files, get files, show folder contents, etc
